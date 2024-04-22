@@ -13,10 +13,12 @@ def create_vector_db():
                              loader_cls=PyPDFLoader)
 
     documents = loader.load()
+    print("d", documents) 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500,
                                                    chunk_overlap=50)
     texts = text_splitter.split_documents(documents)
-
+    print("============================")
+    print(texts)
     embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2',
                                        model_kwargs={'device': 'cpu'})
 

@@ -51,7 +51,7 @@ def load_llm():
 def qa_bot():
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",
                                        model_kwargs={'device': 'cpu'})
-    db = FAISS.load_local(DB_FAISS_PATH, embeddings)
+    db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
     llm = load_llm()
     qa_prompt = set_custom_prompt()
     qa = retrieval_qa_chain(llm, qa_prompt, db)
@@ -66,7 +66,7 @@ def final_result(query):
 
 #chainlit code
 @cl.on_chat_start
-async def start():
+async def on_chat_start():
     chain = qa_bot()
     msg = cl.Message(content="Starting the bot...")
     await msg.send()
@@ -74,9 +74,8 @@ async def start():
     await msg.update()
 
     cl.user_session.set("chain", chain)
-
 @cl.on_message
-async def main(message: cl.Message):
+async def on_message(message: cl.Message):
     chain = cl.user_session.get("chain") 
     cb = cl.AsyncLangchainCallbackHandler(
         stream_final_answer=True, answer_prefix_tokens=["FINAL", "ANSWER"]
@@ -92,4 +91,3 @@ async def main(message: cl.Message):
         answer += "\nNo sources found"
 
     await cl.Message(content=answer).send()
-
